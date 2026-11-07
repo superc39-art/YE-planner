@@ -12,13 +12,45 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>플래너</title>
 <script>
-const THC={blue:['블루','#3182f6','#4c94ff'],green:['그린','#1f9d55','#3dbb73'],mint:['민트','#0fa39a','#2fc4b8'],purple:['퍼플','#7c4ddb','#a07cf0'],pink:['핑크','#e5487f','#f06f9b'],orange:['오렌지','#ef6c00','#ff9142'],mono:['모노','#111111','#f2f2f2']};
-function applyTheme(){let t={};try{t=JSON.parse(localStorage.getItem('planner.theme'))||{}}catch(e){}
-  const r=document.documentElement,m=t.mode||'system',c=THC[t.color]?t.color:'blue';
-  if(m=='system')delete r.dataset.theme;else r.dataset.theme=m;
-  const dark=m=='dark'||(m=='system'&&matchMedia('(prefers-color-scheme: dark)').matches);
-  r.style.setProperty('--pr',THC[c][dark?2:1]);r.style.setProperty('--on',c=='mono'&&dark?'#111':'#fff');
-  const mt=document.querySelector('meta[name=theme-color]');if(mt)mt.content=dark?'#0d0d0d':'#fafafa';return{m,c}}
+const TF='-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif';
+const DEF={bg:'#fafafa',bgi:'none',bgs:'cover',sf:'#ffffff',sh:'#f0f0f0',tx:'#111111',mu:'#777777',ln:'#e6e6e6',pr:'#3182f6',on:'#ffffff',cbg:'var(--sf)',sbg:'var(--cbg)',bc:'var(--ln)',bw:'1px',r:'16px',rs:'10px',rb:'10px',shd:'none',shb:'none',shi:'none',blur:'none',ib:'var(--sf)',pbg:'var(--pr)',font:TF,hf:'var(--font)',tbb:'var(--sf)',fr:'50%',fbw:'0px',shf:'0 6px 18px rgba(0,0,0,.22)',rowbg:'var(--bg)',rc:'var(--pr)',rt:'var(--sh)',tbon:'var(--pr)'};
+const THEMES=[
+{id:'base',n:'기본',e:'Default',d:'지금까지 쓰던 깔끔한 스타일. 아이폰의 라이트/다크 설정을 따라가요.',rows:'list',v:{}},
+{id:'flat',n:'플랫',e:'Flat Design',d:'면과 색만으로 정리하는 가장 기본 스타일',rows:'list',v:{bg:'#ffffff',sf:'#f2f4f7',sh:'#e7ebf0',tx:'#17202a',mu:'#68737f',ln:'#eceff3',pr:'#2f6fed',bw:'0px',r:'14px',rs:'12px',rb:'12px',ib:'#f2f4f7',tbb:'#ffffff',shf:'none',rowbg:'#ffffff'}},
+{id:'skeuo',n:'스큐어모피즘',e:'Skeuomorphism',d:'실제 물건을 그대로 옮겨 온 입체 스타일',dark:1,rows:'card',v:{bg:'#3a2416',bgi:'repeating-linear-gradient(93deg,rgba(255,255,255,.03) 0 2px,transparent 2px 9px),linear-gradient(165deg,#6b4428,#2a190e)',sf:'#4a2f1c',sh:'rgba(0,0,0,.3)',tx:'#f6ead6',mu:'#cdb898',ln:'rgba(0,0,0,.35)',pr:'#d9a94e',on:'#3a2416',cbg:'linear-gradient(180deg,#5a3923,#3f2715)',sbg:'linear-gradient(180deg,#523420,#36210f)',bc:'rgba(255,220,170,.16)',r:'18px',rs:'12px',rb:'12px',shd:'inset 0 1px 0 rgba(255,230,190,.2),0 10px 22px rgba(0,0,0,.45)',shb:'inset 0 1px 0 rgba(255,235,200,.3),0 3px 8px rgba(0,0,0,.4)',shi:'inset 0 2px 5px rgba(0,0,0,.5)',ib:'#2c1a0f',pbg:'linear-gradient(180deg,#f4cf78,#c08a2e)',tbb:'linear-gradient(180deg,#4a2f1c,#2a190e)',hf:'Georgia,"AppleMyungjo",serif',shf:'inset 0 2px 0 rgba(255,240,200,.55),0 8px 18px rgba(0,0,0,.5)',rc:'#e8ba5f',rt:'rgba(0,0,0,.35)',tbon:'#f0c56a'}},
+{id:'neu',n:'뉴모피즘',e:'Neumorphism',d:'바탕에서 살짝 튀어나온 듯한 말랑한 입체',rows:'card',v:{bg:'#e4e9f0',sf:'#e4e9f0',sh:'#d6dde7',tx:'#3f4a5c',mu:'#7d889b',ln:'transparent',pr:'#6d87b7',bw:'0px',r:'22px',rs:'16px',rb:'16px',shd:'-7px -7px 16px #ffffff,7px 7px 16px #b8c2d1',shb:'-4px -4px 10px #ffffff,4px 4px 10px #b8c2d1',shi:'inset 3px 3px 7px #c3cbd8,inset -3px -3px 7px #ffffff',ib:'#e4e9f0',tbb:'#e4e9f0',shf:'-5px -5px 12px #ffffff,5px 5px 12px #b8c2d1',rt:'#d3dae5',tbon:'#5b76a8'}},
+{id:'glass',n:'글래스모피즘',e:'Glassmorphism',d:'컬러 빛 위에 뿌연 유리를 올린 스타일',dark:1,rows:'card',v:{bg:'#0d1028',bgi:'radial-gradient(circle at 12% 18%,rgba(140,70,255,.85),transparent 42%),radial-gradient(circle at 88% 32%,rgba(40,120,255,.8),transparent 44%),radial-gradient(circle at 40% 92%,rgba(255,80,170,.75),transparent 48%)',sf:'rgba(255,255,255,.12)',sh:'rgba(255,255,255,.14)',tx:'#ffffff',mu:'rgba(255,255,255,.74)',ln:'rgba(255,255,255,.18)',pr:'#ffffff',on:'#ffffff',cbg:'rgba(255,255,255,.12)',sbg:'rgba(28,24,64,.86)',bc:'rgba(255,255,255,.3)',r:'22px',rs:'14px',rb:'14px',blur:'blur(22px) saturate(1.4)',ib:'rgba(255,255,255,.1)',pbg:'rgba(255,255,255,.26)',tbb:'rgba(20,18,50,.4)',shf:'0 0 0 1px rgba(255,255,255,.4),0 8px 24px rgba(0,0,0,.25)',rc:'#ffffff',rt:'rgba(255,255,255,.18)',tbon:'#ffffff'}},
+{id:'clay',n:'클레이모피즘',e:'Claymorphism',d:'점토처럼 부풀어 오른 귀여운 스타일',rows:'card',v:{bg:'#ffe4d4',sf:'#fff4ec',sh:'#ffd9c4',tx:'#5e3222',mu:'#9c6b58',ln:'transparent',pr:'#ff8a6b',on:'#5a2e12',bw:'0px',r:'28px',rs:'20px',rb:'999px',shd:'inset 4px 4px 10px rgba(255,255,255,.85),inset -6px -6px 14px rgba(222,140,108,.25),8px 12px 24px rgba(222,140,108,.28)',shb:'inset 3px 3px 6px rgba(255,255,255,.8),inset -4px -4px 8px rgba(0,0,0,.08),4px 6px 12px rgba(222,140,108,.25)',shi:'inset 3px 3px 8px rgba(222,140,108,.22),inset -3px -3px 8px #ffffff',ib:'#fff4ec',pbg:'#ffd166',tbb:'#fff4ec',font:'ui-rounded,"SF Pro Rounded",-apple-system,"Apple SD Gothic Neo",sans-serif',shf:'inset 3px 3px 6px rgba(255,255,255,.8),inset -4px -4px 8px rgba(0,0,0,.08),6px 10px 18px rgba(80,180,150,.35)',rc:'#ff8a6b',rt:'#ffd9c4',tbon:'#e8643f'}},
+{id:'material',n:'머티리얼',e:'Material Design 3',d:'구글의 디자인 시스템, 색 하나에서 톤을 뽑는 방식',rows:'list',v:{bg:'#fef7ff',sf:'#f3edf7',sh:'#e7e0ec',tx:'#1d1b20',mu:'#49454f',ln:'#e7e0ec',pr:'#6750a4',bw:'0px',r:'16px',rs:'12px',rb:'999px',shd:'0 1px 2px rgba(0,0,0,.16),0 1px 3px 1px rgba(0,0,0,.08)',ib:'#ece6f0',tbb:'#f3edf7',fr:'16px',font:'Roboto,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif',shf:'0 3px 8px rgba(0,0,0,.18)',rowbg:'#fef7ff',tbon:'#1d1b20'}},
+{id:'brutal',n:'브루탈리즘',e:'Neo Brutalism',d:'굵은 선과 원색으로 일부러 거칠게',rows:'card',v:{bg:'#ffdf3c',sf:'#ffffff',sh:'#fff3b0',tx:'#000000',mu:'#2a2a2a',ln:'#000000',pr:'#ff5a36',on:'#000000',cbg:'#ffffff',bc:'#000000',bw:'3px',r:'0px',rs:'0px',rb:'0px',shd:'5px 5px 0 #000',shb:'3px 3px 0 #000',shi:'3px 3px 0 #000',ib:'#ffffff',tbb:'#ffffff',fr:'0px',fbw:'3px',font:'ui-monospace,"SF Mono",Menlo,"Courier New","Apple SD Gothic Neo",monospace',shf:'4px 4px 0 #000',rc:'#000000',rt:'#fff3b0',tbon:'#000000'}},
+{id:'bento',n:'벤토 그리드',e:'Bento Grid',d:'도시락처럼 크기 다른 칸에 나눠 담기',rows:'list',v:{bg:'#eef0f4',sf:'#ffffff',sh:'#eef0f4',tx:'#15171c',mu:'#6b7280',ln:'#eef0f4',pr:'#2f6fed',bw:'0px',r:'24px',rs:'14px',rb:'14px',ib:'#f3f4f7',tbb:'#ffffff',shf:'0 6px 16px rgba(0,0,0,.12)',rowbg:'#ffffff'}},
+{id:'dark',n:'다크 모드',e:'Dark Mode',d:'어두운 바탕에서 밝기 차이로 층을 나누기',dark:1,rows:'list',v:{bg:'#0e0f12',sf:'#17191e',sh:'#22252b',tx:'#e6e7ea',mu:'#9a9ea7',ln:'#25282e',pr:'#4c8dff',ib:'#17191e',tbb:'#121317',shf:'0 0 22px rgba(76,141,255,.45)',rowbg:'#0e0f12'}},
+{id:'liquid',n:'리퀴드 글래스',e:'Liquid Glass',d:'밝은 배경 위 맑은 유리, 애플의 최신 스타일',rows:'card',v:{bg:'#cfe3ff',bgi:'linear-gradient(172deg,#8fc9ff 0%,#c9e2ff 32%,#ffe1c2 68%,#ffab80 100%)',sf:'rgba(255,255,255,.4)',sh:'rgba(255,255,255,.45)',tx:'#0f2147',mu:'#3f5179',ln:'rgba(255,255,255,.6)',pr:'#2563eb',cbg:'rgba(255,255,255,.4)',sbg:'rgba(255,255,255,.88)',bc:'rgba(255,255,255,.8)',r:'28px',rs:'18px',rb:'999px',shd:'inset 0 1px 0 rgba(255,255,255,.95),0 10px 28px rgba(40,70,130,.14)',shb:'inset 0 1px 0 rgba(255,255,255,.9),0 4px 12px rgba(40,70,130,.12)',blur:'blur(8px) saturate(1.8)',ib:'rgba(255,255,255,.55)',pbg:'rgba(37,99,235,.9)',tbb:'rgba(255,255,255,.5)',shf:'inset 0 1px 0 rgba(255,255,255,.6),0 10px 24px rgba(37,99,235,.35)',rt:'rgba(255,255,255,.6)'}},
+{id:'y2k',n:'Y2K',e:'Y2K',d:'2000년대 초 크롬과 무지갯빛 감성',rows:'card',v:{bg:'#ffd0ef',bgi:'linear-gradient(160deg,#ffb6e6 0%,#c7c2ff 38%,#aee3ff 66%,#b6ffe2 100%)',sf:'#ffffff',sh:'rgba(255,255,255,.65)',tx:'#3b1361',mu:'#6e4296',ln:'rgba(255,255,255,.9)',pr:'#ff2da8',cbg:'linear-gradient(180deg,#ffffff 0%,#f1eefa 48%,#dcd7ee 52%,#f8f6ff 100%)',sbg:'#fbf8ff',bc:'#ffffff',bw:'2px',r:'26px',rs:'18px',rb:'999px',shd:'0 6px 18px rgba(123,47,247,.22)',shb:'inset 0 1px 0 #fff,0 3px 8px rgba(123,47,247,.25)',ib:'rgba(255,255,255,.9)',pbg:'linear-gradient(180deg,#ff7fd0,#ff2da8 55%,#d1108a)',tbb:'linear-gradient(180deg,#ffffff,#e9e4f7)',hf:'"Arial Black","Apple SD Gothic Neo",sans-serif',shf:'inset 0 2px 0 rgba(255,255,255,.6),0 6px 16px rgba(255,45,168,.45)',rc:'#ff2da8',rt:'rgba(255,255,255,.75)',tbon:'#b21685'}},
+{id:'minimal',n:'미니멀',e:'Minimalism',d:'필요한 것만 남기고 여백으로 말하기',rows:'list',v:{bg:'#fafaf8',sf:'#fafaf8',sh:'#efefeb',tx:'#111111',mu:'#7d7d77',ln:'#dcdcd6',pr:'#111111',on:'#fafaf8',r:'0px',rs:'0px',rb:'0px',ib:'#fafaf8',tbb:'#fafaf8',shf:'none',rowbg:'#fafaf8',tbon:'#111111'}},
+{id:'pastel',n:'파스텔 소프트',e:'Pastel Soft',d:'부드러운 파스텔과 둥근 모양의 다이어리 감성',x:1,rows:'card',v:{bg:'#fbf6ff',sf:'#ffffff',sh:'#f2eafe',tx:'#47395f',mu:'#8e82a8',ln:'#efe6fb',pr:'#9b7cf0',bw:'0px',r:'24px',rs:'16px',rb:'999px',shd:'0 8px 24px rgba(168,139,245,.16)',shb:'0 3px 10px rgba(168,139,245,.18)',ib:'#ffffff',pbg:'linear-gradient(135deg,#8f6ef0,#e8679f)',tbb:'#ffffff',shf:'0 8px 20px rgba(168,139,245,.45)',rc:'#a88bf5',rt:'#efe6fb'}},
+{id:'luxury',n:'다크 럭셔리',e:'Dark Luxury',d:'짙은 검정에 금색 포인트, 고급스러운 세리프',x:1,dark:1,rows:'list',v:{bg:'#0b0b0c',sf:'#141416',sh:'#1d1d20',tx:'#f2ede3',mu:'#a49e92',ln:'#2a2824',pr:'#c9a45c',on:'#14110a',bc:'rgba(201,164,92,.3)',r:'4px',rs:'2px',rb:'2px',ib:'#101012',pbg:'linear-gradient(135deg,#e3c47f,#b08a3e)',tbb:'#0e0e10',hf:'"Nanum Myeongjo","AppleMyungjo","Noto Serif KR",Georgia,serif',shf:'0 6px 18px rgba(201,164,92,.3)',tbon:'#d9b66d',rowbg:'#0b0b0c'}},
+{id:'neon',n:'사이버펑크 네온',e:'Cyberpunk Neon',d:'검은 바탕에 형광빛이 번지는 게임 감성',x:1,dark:1,rows:'card',v:{bg:'#07060f',bgi:'linear-gradient(rgba(0,240,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.07) 1px,transparent 1px)',bgs:'28px 28px',sf:'#0f0d1f',sh:'#1a1733',tx:'#ece8ff',mu:'#9a93cc',ln:'rgba(255,43,214,.25)',pr:'#00f0ff',on:'#04030a',cbg:'rgba(15,13,31,.92)',sbg:'#0f0d1f',bc:'rgba(0,240,255,.5)',r:'6px',rs:'4px',rb:'4px',shd:'0 0 14px rgba(0,240,255,.2)',shb:'0 0 10px rgba(0,240,255,.3)',ib:'#0b0a18',tbb:'rgba(7,6,15,.94)',font:'ui-monospace,Menlo,"Apple SD Gothic Neo",monospace',shf:'0 0 20px rgba(0,240,255,.7)',rc:'#ff2bd6',rt:'#1a1733',tbon:'#00f0ff'}},
+{id:'aurora',n:'오로라',e:'Aurora Gradient',d:'은은한 빛 번짐 위에 반투명 카드',x:1,rows:'card',v:{bg:'#eef3ff',bgi:'radial-gradient(circle at 18% 8%,#a5f3e3,transparent 45%),radial-gradient(circle at 88% 22%,#d8b4fe,transparent 45%),radial-gradient(circle at 50% 100%,#fbcfe8,transparent 55%)',sf:'rgba(255,255,255,.62)',sh:'rgba(255,255,255,.7)',tx:'#1e1b3a',mu:'#57537a',ln:'rgba(255,255,255,.85)',pr:'#7c3aed',cbg:'rgba(255,255,255,.6)',sbg:'rgba(255,255,255,.92)',bc:'rgba(255,255,255,.9)',r:'22px',rs:'14px',rb:'14px',shd:'0 8px 26px rgba(124,58,237,.12)',blur:'blur(14px)',ib:'rgba(255,255,255,.72)',pbg:'linear-gradient(135deg,#7c3aed,#ec4899)',tbb:'rgba(255,255,255,.62)',rc:'#7c3aed',rt:'rgba(255,255,255,.75)'}}];
+const CUST={id:'custom',n:'커스텀',e:'Custom',d:'배경색, 강조색, 모서리, 그림자를 직접 골라요.'};
+const CDEF={dark:false,bg:'#f6f7fb',pr:'#3182f6',r:16,sh:1,rows:'list'};
+function lum(h){h=String(h).replace('#','');if(h.length==3)h=h.split('').map(x=>x+x).join('');const n=parseInt(h,16)||0,f=c=>{c/=255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)};return .2126*f(n>>16&255)+.7152*f(n>>8&255)+.0722*f(n&255)}
+function customVars(c){const d=c.dark,mx=(a,b,p)=>`color-mix(in srgb,${a} ${p}%,${b})`,a=d?[.35,.3,.55,.45]:[.08,.08,.18,.16],S=[['none','none'],[`0 4px 14px rgba(0,0,0,${a[0]})`,`0 2px 6px rgba(0,0,0,${a[1]})`],[`0 12px 30px rgba(0,0,0,${a[2]})`,`0 4px 12px rgba(0,0,0,${a[3]})`]][c.sh]||['none','none'],rr=Math.round(c.r*.7)+'px';
+  return{bg:c.bg,sf:d?mx(c.bg,'#ffffff',88):mx(c.bg,'#ffffff',30),sh:d?mx(c.bg,'#ffffff',80):mx(c.bg,'#000000',93),tx:d?'#f2f2f2':'#151515',mu:d?'#a3a3a3':'#666666',ln:d?mx(c.bg,'#ffffff',82):mx(c.bg,'#000000',89),pr:c.pr,on:lum(c.pr)>.55?'#111111':'#ffffff',r:c.r+'px',rs:rr,rb:rr,shd:S[0],shb:S[1],bw:c.sh?'0px':'1px',fr:c.r>=12?'50%':c.r+'px',rowbg:'var(--bg)'}}
+function thGet(){try{return JSON.parse(localStorage.getItem('planner.theme'))||{}}catch(e){return{}}}
+function thFind(id){return id=='custom'?CUST:(THEMES.find(x=>x.id==id)||THEMES[0])}
+function thVars(t,c){return t.id=='custom'?{...DEF,...customVars(c)}:{...DEF,...t.v}}
+const vstr=v=>Object.entries(v).map(([k,x])=>`--${k}:${x}`).join(';');
+function applyTheme(){
+  const s=thGet(),r=document.documentElement,t=thFind(s.id||'base'),m=s.mode||'system',c={...CDEF,...(s.c||{})};
+  r.style.removeProperty('--pr');r.style.removeProperty('--on');
+  let st=document.getElementById('thv');if(!st){st=document.createElement('style');st.id='thv';document.head.appendChild(st)}
+  r.dataset.st=t.id;r.dataset.rows=t.id=='custom'?c.rows:t.rows;let dark;
+  if(t.id=='base'){if(m=='system')delete r.dataset.theme;else r.dataset.theme=m;dark=m=='dark'||(m=='system'&&matchMedia('(prefers-color-scheme: dark)').matches);st.textContent=''}
+  else{delete r.dataset.theme;dark=t.id=='custom'?c.dark:!!t.dark;st.textContent=`:root[data-st][data-st]{${vstr(thVars(t,c))};color-scheme:${dark?'dark':'light'}}`}
+  const mt=document.querySelector('meta[name=theme-color]');if(mt)mt.content=t.id=='base'?(dark?'#0d0d0d':'#fafafa'):t.id=='custom'?c.bg:t.v.bg;
+  return{t,m,s,c};
+}
 applyTheme();try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyTheme)}catch(e){}
 </script>
 <style>
@@ -40,6 +72,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{background:var(--bg);color:var(--tx);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
 input{font:inherit;color:inherit}
+:root{--bgi:none;--bgs:cover;--cbg:var(--sf);--sbg:var(--cbg);--bc:var(--ln);--bw:1px;--r:16px;--rs:10px;--rb:10px;--shd:none;--shb:none;--shi:none;--blur:none;--ib:var(--sf);--pbg:var(--pr);--font:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;--hf:var(--font);--tbb:var(--sf);--fr:50%;--fbw:0px;--shf:0 6px 18px rgba(0,0,0,.22);--rowbg:var(--bg);--rc:var(--pr);--rt:var(--sh);--tbon:var(--pr)}
 [hidden]{display:none!important}
 .app{max-width:620px;margin:0 auto;padding:14px 16px calc(150px + env(safe-area-inset-bottom,0px))}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
@@ -177,6 +210,102 @@ label.al{display:flex;align-items:center;gap:8px;margin:6px 0 2px;font-size:14px
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 textarea{width:100%;min-height:96px;resize:vertical;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;padding:10px 12px;font:inherit;outline:0}
 @media (max-width:420px){.pgs{gap:8px}.dt h1{font-size:19px}.eg{grid-template-columns:repeat(7,1fr)}}
+
+/* ===== 테마 레이어 ===== */
+html[data-st] body{font-family:var(--font);background-color:var(--bg);color:var(--tx)}
+html[data-st] body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:var(--bgi);background-size:var(--bgs)}
+html[data-st] :is(h1,h2,h3,.top b,.hero b){font-family:var(--hf)}
+html[data-st] :is(.hero,.tpv){background:var(--cbg);border:var(--bw) solid var(--bc);border-radius:var(--r);box-shadow:var(--shd);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+html[data-st] .sheet{background:var(--sbg);border:var(--bw) solid var(--bc);border-radius:var(--r) var(--r) 0 0;box-shadow:var(--shd);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+@media (min-width:640px){html[data-st] .sheet{border-radius:var(--r)}}
+html[data-st] .btn{background:var(--cbg);border:var(--bw) solid var(--bc);border-radius:var(--rb);box-shadow:var(--shb);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);color:var(--tx)}
+html[data-st] .btn.pri{background:var(--pbg);color:var(--on);border-color:transparent}
+html[data-st] :is(.add input,.fr input,textarea,.ri-row input,.ri-row select,label.al select){background:var(--ib);border:var(--bw) solid var(--bc);border-radius:var(--rs);box-shadow:var(--shi);color:var(--tx)}
+html[data-st] .tb{background:var(--tbb);border-top:var(--bw) solid var(--bc);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+html[data-st] .tb .on{color:var(--tbon)}
+html[data-st] .fab{border-radius:var(--fr);background:var(--pbg);color:var(--on);box-shadow:var(--shf);border:var(--fbw) solid var(--bc)}
+html[data-st] .sw .del{opacity:0}
+html[data-st] .sw.swp .del{opacity:1}
+html[data-st] .sw .row{background:var(--rowbg)}
+html[data-st][data-rows=card] .sw{border:var(--bw) solid var(--bc);border-radius:var(--r);margin-bottom:10px;box-shadow:var(--shd)}
+html[data-st][data-rows=card] .sw .row{background:var(--cbg);padding:4px 10px 4px 6px;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+html[data-st][data-rows=card] .es{border:var(--bw) solid var(--bc);border-radius:var(--r);background:var(--cbg);box-shadow:var(--shd);margin-bottom:10px}
+html[data-st][data-rows=card] section ul{padding:4px 2px 2px}
+html[data-st] .ring .rf{stroke:var(--rc)}
+html[data-st] .ring .rb{stroke:var(--rt)}
+html[data-st] :is(.bar i,.bg,.cd.td,.tip){background:var(--pbg);color:var(--on)}
+html[data-st] .tip::after{border-top-color:var(--pr)}
+html[data-st] .stk{background:var(--sh);color:var(--tx)}
+html[data-st] .seg{background:var(--sh);border-radius:var(--rs)}
+html[data-st] .seg .on{background:var(--cbg);border-radius:var(--rs);box-shadow:var(--shb);color:var(--tx)}
+html[data-st] .esi{background:var(--sh)}
+html[data-st] .cd{border-radius:var(--rs)}
+/* iOS 입력 시 자동 확대 방지: 16px 미만이면 Safari가 확대함 */
+input,textarea,select{font-size:16px!important}
+/* 테마 선택 카드 */
+.thg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+@media (min-width:520px){.thg{grid-template-columns:repeat(3,1fr)}}
+.thc{display:flex;flex-direction:column;gap:3px;text-align:left;padding:7px 7px 9px;border-radius:14px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);font-family:-apple-system,"Apple SD Gothic Neo",sans-serif}
+.thc.on{box-shadow:0 0 0 2.5px var(--tx);border-color:transparent}
+.thn{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:14px}
+.thn em{font-style:normal;font-size:10px;padding:1px 6px;border-radius:99px;background:var(--sh);color:var(--mu)}
+.thc small{font-size:11px;color:var(--mu)}
+.tpm{position:relative;height:86px;border-radius:10px;overflow:hidden;background-color:var(--bg);background-image:var(--bgi);background-size:var(--bgs)}
+.tpm .c1{position:absolute;left:9px;right:9px;top:9px;height:34px;background:var(--cbg);border:var(--bw) solid var(--bc);border-radius:min(var(--r),12px);box-shadow:var(--shd);display:flex;align-items:center;gap:7px;padding:0 9px;color:var(--tx);font:700 13px var(--hf)}
+.tpm .c1 i{width:13px;height:13px;border-radius:50%;background:var(--rc);flex:none}
+.tpm .p{position:absolute;left:9px;bottom:9px;width:58px;height:22px;background:var(--pbg);border-radius:min(var(--rb),11px);box-shadow:var(--shb)}
+.tpm .l{position:absolute;right:11px;bottom:16px;width:44px;height:8px;border-radius:4px;background:var(--mu);opacity:.45}
+.cfr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--ln)}
+.cfr>span{flex:none;width:96px;font-size:14px}
+.cfr .seg{flex:1}
+.cfr input[type=color]{width:56px;height:36px;border:1px solid var(--ln);border-radius:10px;padding:2px;background:var(--sf)}
+.cfr input[type=range]{flex:1;accent-color:var(--pr)}
+/* ===== 테마별 디테일 ===== */
+html[data-st=flat] :is(h1,h2){font-weight:800}
+html[data-st=skeuo] :is(h1,h2,.top b){text-shadow:0 2px 0 rgba(0,0,0,.55),0 -1px 0 rgba(255,235,200,.12)}
+html[data-st=skeuo] .btn:active,html[data-st=neu] .btn:active{box-shadow:var(--shi)}
+html[data-st=neu] .fab:active{box-shadow:var(--shi)}
+html[data-st=neu] .tb{border-top:0;box-shadow:0 -6px 14px rgba(184,194,209,.45)}
+html[data-st=glass] .ts,html[data-st=neon] .ts{background:#14122b;border:1px solid rgba(255,255,255,.2)}
+html[data-st=clay] .fab{background:#8fdcc2;color:#1f5a46}
+html[data-st=clay] .hero.done{background:#e8defd}
+html[data-st=clay] :is(h1,h2){font-weight:800}
+html[data-st=material] .fab{background:#eaddff;color:#21005d}
+html[data-st=material] .tb .on svg{background:#e8def8;border-radius:16px;padding:2px 16px;width:58px;box-sizing:content-box;margin:0 -16px}
+html[data-st=brutal] :is(h1,h2,.top b,.thn b){text-transform:uppercase;letter-spacing:.02em}
+html[data-st=brutal] .btn:active,html[data-st=brutal] .fab:active{transform:translate(3px,3px);box-shadow:none}
+html[data-st=brutal] .tb{border-top-width:3px}
+html[data-st=brutal] .ts{border:3px solid #000;border-radius:0;box-shadow:4px 4px 0 #000;background:#fff;color:#000}
+html[data-st=brutal] .ts button{color:#ff5a36}
+html[data-st=bento] #day>section,html[data-st=bento] #cal>section{background:#fff;border-radius:24px;padding:14px 16px 16px;margin-bottom:12px}
+html[data-st=bento] .hero{background:#16181d;color:#fff;border-radius:24px}
+html[data-st=bento] .hero small{color:#a9adb8}
+html[data-st=bento] .hero .rb{stroke:#2b2e36}
+html[data-st=bento] .hero.done{background:#2f6fed}
+html[data-st=bento] .hero.done small{color:#dbe6ff}
+html[data-st=bento] .fab{background:#ffd23f;color:#111}
+html[data-st=dark] .btn.pri{box-shadow:0 0 16px rgba(76,141,255,.35)}
+html[data-st=dark] .ring .rf{filter:drop-shadow(0 0 4px rgba(76,141,255,.6))}
+html[data-st=liquid] .tb{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-bottom:0;border:1px solid rgba(255,255,255,.8);border-radius:30px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 10px 30px rgba(40,70,130,.18)}
+html[data-st=liquid] .fab{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+html[data-st=liquid] .ts{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
+html[data-st=y2k] .top b{color:#3b1361}
+html[data-st=y2k] h1{font-style:italic;color:#fff;text-shadow:2px 2px 0 #b14cff,-1px -1px 0 #ff5fc4,0 0 12px rgba(255,255,255,.8)}
+html[data-st=y2k] .dt p{color:#5a2b85}
+html[data-st=y2k] h2{font-style:italic}
+html[data-st=minimal] :is(h1,h2){font-weight:500}
+html[data-st=minimal] .btn.pri{background:transparent;color:#111;border:1px solid #111}
+html[data-st=minimal] .fab{background:#111;color:#fafaf8;width:52px;height:52px;font-size:26px}
+html[data-st=minimal] .hero{border-width:1px 0;border-radius:0;padding-left:0;padding-right:0;background:transparent}
+html[data-st=minimal] .ring circle{stroke-width:3}
+html[data-st=pastel] .hero.done{background:linear-gradient(135deg,#efe7ff,#ffe6f1)}
+html[data-st=luxury] :is(h1,h2){font-weight:500;letter-spacing:.03em}
+html[data-st=luxury] .top b{letter-spacing:.3em;font-size:13px;color:#c9a45c}
+html[data-st=luxury] .hero{border-color:rgba(201,164,92,.45)}
+html[data-st=neon] :is(h1,.top b){color:#fff;text-shadow:0 0 8px rgba(0,240,255,.9),0 0 22px rgba(0,240,255,.5)}
+html[data-st=neon] h2{color:#ff2bd6;text-shadow:0 0 10px rgba(255,43,214,.6)}
+html[data-st=neon] .ring .rf{filter:drop-shadow(0 0 5px #ff2bd6)}
+html[data-st=aurora] .hero.done{background:linear-gradient(135deg,rgba(165,243,227,.7),rgba(216,180,254,.7))}
 </style>
 </head>
 <body>
@@ -274,13 +403,13 @@ document.addEventListener('pointermove',e=>{
   if(!G||e.pointerId!=G.id)return;const dx=e.clientX-G.x,dy=e.clientY-G.y;
   if(!G.ax){if(Math.hypot(dx,dy)<9)return;clearTimeout(G.lp);G.ax=Math.abs(dx)>Math.abs(dy)*1.2?'x':'y';if(G.ax=='y'){G=null;return}}
   G.dx=dx;
-  if(G.r){G.r.style.transition='none';G.r.style.transform=`translateX(${Math.min(0,dx)}px)`}
+  if(G.r){G.r.parentNode.classList.add('swp');G.r.style.transition='none';G.r.style.transform=`translateX(${Math.min(0,dx)}px)`}
   else{const d=$('#day');d.style.transition='none';d.style.transform=`translateX(${dx*.35}px)`}
 });
 function gEnd(e,cancel){
   if(!G||(e&&e.pointerId!=G.id))return;clearTimeout(G.lp);const g=G;G=null;if(g.ax!='x')return;
   sup=1;setTimeout(()=>sup=0,350);
-  if(g.r){g.r.style.transition='';if(!cancel&&g.dx<-90){g.r.style.transform='translateX(-100%)';const k=g.r.dataset.k,id=g.r.dataset.id;setTimeout(()=>del(k,id),200)}else g.r.style.transform=''}
+  if(g.r){g.r.style.transition='';if(!cancel&&g.dx<-90){g.r.style.transform='translateX(-100%)';const k=g.r.dataset.k,id=g.r.dataset.id;setTimeout(()=>del(k,id),200)}else{g.r.style.transform='';setTimeout(()=>g.r.parentNode&&g.r.parentNode.classList.remove('swp'),240)}}
   else{const d=$('#day');d.style.transition='transform .2s ease-out';d.style.transform='';setTimeout(()=>d.style.transition='',220);if(!cancel&&Math.abs(g.dx)>70)go(g.dx<0?1:-1)}
 }
 document.addEventListener('pointerup',e=>gEnd(e,false));
@@ -375,7 +504,10 @@ document.addEventListener('click',e=>{
     case'step':go(+a.n);break;
     case'fab':openAdd();break;
     case'thm':setTheme('mode',a.v);break;
-    case'thc':setTheme('color',a.v);break;
+    case'tset':setTheme('id',a.v);if(a.v=='custom')openCustom();break;
+    case'cfo':openCustom();break;
+    case'cfs':{const v=a.k=='dark'?a.v=='true':a.k=='sh'?+a.v:a.v;[...b.parentNode.children].forEach(x=>x.classList.toggle('on',x==b));cfSet(a.k,v);break}
+    case'cfreset':{const s=thGet();s.c={...CDEF};s.id='custom';try{localStorage.setItem('planner.theme',JSON.stringify(s))}catch(x){}applyTheme();render();openCustom(1);break}
     case'ft':$('#nt').focus();break;
     case'tipok':try{localStorage.setItem('planner.tip','1')}catch(x){}render();break;
     case'act':openAct(a.k,a.id);break;
@@ -449,12 +581,28 @@ function rWeek(){
     h+=`<button class="row" data-a="pick" data-d="${k}" style="padding:12px 6px${k==cur?';background:var(--sh)':''}"><span style="width:86px;flex:none${k==T?';font-weight:700':''}">${x.getMonth()+1}/${x.getDate()} ${DAYS[x.getDay()]}</span><span class="tx"><small>계획 ${p.c}/${p.n} 완료</small><small>체크 ${t.c}/${t.n} 완료</small></span><div class="bar" style="width:64px;margin:0"><i style="width:${p.p}%"></i></div></button>`}
   $('#cal').innerHTML=h+'<p class="hint">날짜를 누르면 하루 계획표로 이동합니다. 오른쪽 막대는 하루 계획의 완료율입니다.</p>';
 }
-function themeUI(){const{m,c}=applyTheme();
-  return`<div class="seg" role="radiogroup" aria-label="화면 모드">${[['system','시스템'],['light','☀️ 라이트'],['dark','🌙 다크']].map(([v,l])=>`<button role="radio" aria-checked="${m==v}" class="${m==v?'on':''}" data-a="thm" data-v="${v}">${l}</button>`).join('')}</div>
-<div class="sws" role="radiogroup" aria-label="강조색">${Object.entries(THC).map(([k,[l,a]])=>`<button role="radio" aria-checked="${c==k}" class="swc${c==k?' on':''}" data-a="thc" data-v="${k}"><i style="background:${a}">${c==k?'✓':''}</i>${l}</button>`).join('')}</div>
-<div class="tpv"><button class="btn pri" tabindex="-1">미리보기</button><span class="bg" style="margin:0">오늘</span><div class="bar" style="flex:1;margin:0"><i style="width:60%"></i></div></div>
-<p class="hint">‘시스템’은 아이폰 설정의 라이트/다크 모드를 그대로 따라가요.</p>`}
-function setTheme(k,v){let t={};try{t=JSON.parse(localStorage.getItem('planner.theme'))||{}}catch(e){}t[k]=v;try{localStorage.setItem('planner.theme',JSON.stringify(t))}catch(e){}applyTheme();render()}
+function themeUI(){const{t,m,c}=applyTheme();
+  const card=x=>{const v=x.id=='base'?DEF:thVars(x,c);return`<button class="thc${t.id==x.id?' on':''}" data-a="tset" data-v="${x.id}" aria-pressed="${t.id==x.id}"><div class="tpm" style="${esc(vstr(v))}"><div class="c1"><i></i>Aa 가</div><b class="p"></b><span class="l"></span></div><span class="thn"><b>${x.n}</b>${x.x?'<em>추가</em>':''}</span><small>${x.e}</small></button>`};
+  return`${t.id=='base'?`<div class="seg" role="radiogroup" aria-label="화면 모드">${[['system','시스템'],['light','☀️ 라이트'],['dark','🌙 다크']].map(([v,l])=>`<button role="radio" aria-checked="${m==v}" class="${m==v?'on':''}" data-a="thm" data-v="${v}">${l}</button>`).join('')}</div>`:''}
+<p class="hint" style="margin:10px 0 0"><b style="color:var(--tx)">${t.n}</b> · ${t.d}${t.id=='custom'?' <button class="btn" style="padding:4px 10px;margin-left:6px" data-a="cfo">편집</button>':''}</p>
+<div class="thg">${THEMES.map(card).join('')}${card(CUST)}</div>`}
+function setTheme(k,v){const s=thGet();s[k]=v;try{localStorage.setItem('planner.theme',JSON.stringify(s))}catch(e){}applyTheme();render()}
+function cfSet(k,v){const s=thGet(),c={...CDEF,...(s.c||{})};c[k]=v;let re=0;
+  if(k=='dark'){if(v&&lum(c.bg)>.45){c.bg='#121318';re=1}if(!v&&lum(c.bg)<.3){c.bg='#f6f7fb';re=1}}
+  s.c=c;s.id='custom';try{localStorage.setItem('planner.theme',JSON.stringify(s))}catch(e){}applyTheme();render();if(re)openCustom(1)}
+const cseg=(k,o,cur)=>`<div class="seg">${o.map(([v,l])=>`<button class="${String(v)===String(cur)?'on':''}" data-a="cfs" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
+function openCustom(keep){const c={...CDEF,...(thGet().c||{})};M=null;R=null;
+  $('#bd').innerHTML=`<div class="sht"><h3>커스텀 테마</h3><button class="ib" data-a="x" aria-label="닫기">✕</button></div>
+<div class="cfr"><span>바탕</span>${cseg('dark',[[false,'☀️ 라이트'],[true,'🌙 다크']],c.dark)}</div>
+<label class="cfr"><span>배경색</span><input type="color" data-cf="bg" value="${c.bg}"></label>
+<label class="cfr"><span>강조색</span><input type="color" data-cf="pr" value="${c.pr}"></label>
+<label class="cfr"><span>모서리 <b id="cfrv">${c.r}px</b></span><input type="range" min="0" max="32" step="2" data-cf="r" value="${c.r}"></label>
+<div class="cfr"><span>그림자</span>${cseg('sh',[[0,'없음'],[1,'약하게'],[2,'진하게']],c.sh)}</div>
+<div class="cfr"><span>목록 모양</span>${cseg('rows',[['list','줄'],['card','카드']],c.rows)}</div>
+<p class="hint">바꾸는 즉시 뒤 화면에 적용돼요.</p>
+<div class="acts end"><button class="btn" data-a="cfreset">처음 값으로</button><button class="btn pri" data-a="x">완료</button></div>`;
+  if(!keep||$('#ov').hidden)showM()}
+document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.cf;if(!k)return;const v=k=='r'?+e.target.value:e.target.value;if(k=='r')$('#cfrv').textContent=v+'px';cfSet(k,v)});
 function rMore(){
   const d=parse(cur),L=(a,e,n,s)=>`<li class="row"><button class="tx" style="text-align:left" data-a="${a}" data-id="${e.id}"><span>${n}</span>${s?`<small>${s}</small>`:''}</button><button class="ib sm" data-a="${a=='fa'?'fe':'re'}" data-id="${e.id}" aria-label="수정">✎</button><button class="ib sm" data-a="${a=='fa'?'fx':'rx'}" data-id="${e.id}" aria-label="삭제">✕</button></li>`;
   $('#cal').innerHTML=`<div class="dh"><div class="dt" style="text-align:left"><h1>관리</h1></div></div>
